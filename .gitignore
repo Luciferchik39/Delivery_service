@@ -1,0 +1,78 @@
+# === СНАЧАЛА РАЗРЕШАЕМ ШАБЛОНЫ ===
+# Secrets - ВАЖЕН ПОРЯДОК!
+!.env.example
+!.env.*.example
+!.config.yaml.example
+!.config.yml.example
+
+# === ПОТОМ ЗАПРЕЩАЕМ ВСЁ ОСТАЛЬНОЕ ===
+
+# Secrets
+.env
+.env.local
+.env.production
+.env.staging
+.env.development
+.env.test
+config.yaml
+config.yml
+*.secret.*
+*.key
+*.pem
+*.p12
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+.venv/
+venv/
+ENV/
+env/
+*.egg-info/
+dist/
+build/
+
+# Django
+*.log
+*.pot
+*.pyc
+local_settings.py
+db.sqlite3
+db.sqlite3-journal
+media/
+static/
+staticfiles/
+
+# Docker
+*.pid
+docker-compose.override.yml
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.project
+.pydevproject
+
+# Testing
+.pytest_cache/
+.coverage
+htmlcov/
+.tox/
+.mypy_cache/
+.ruff_cache/
+.bandit_cache/
+.radon_cache/
+
+# Pre-commit
+.pre-commit-config.local.yaml
+
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini

@@ -1,0 +1,44 @@
+# Виртуальное окружение
+.venv/
+venv/
+env/
+
+# Git
+.git/
+.gitignore
+
+# IDE
+.vscode/
+.idea/
+*.swp
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+
+# Django
+*.log
+db.sqlite3
+media/
+static/
+
+# Secrets
+.env
+*.env
+
+# Testing
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Quality tools
+.mypy_cache/
+.ruff_cache/
+.tox/
+
+# Docker
+Dockerfile
+.dockerignore

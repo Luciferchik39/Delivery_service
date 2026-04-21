@@ -1,0 +1,109 @@
+[project]
+name = "django-delivery-service"
+version = "0.1.0"
+description = "Django delivery service project"
+authors = [
+    {name = "Ilya", email = "ilya@ops.com"}
+]
+readme = "README.md"
+requires-python = ">=3.12,<4.0"
+
+dependencies = [
+    "django (>=6.0.4,<7.0.0)",
+    "pydantic-settings (>=2.13.1,<3.0.0)",
+    "psycopg2-binary (>=2.9.11,<3.0.0)",
+    "loguru>=0.7.3,<0.8.0",
+    "python-dotenv>=1.0.0,<2.0.0",
+]
+
+[tool.poetry]
+package-mode = false
+
+[build-system]
+requires = ["poetry-core>=2.0.0,<3.0.0"]
+build-backend = "poetry.core.masonry.api"
+
+[dependency-groups]
+dev = [
+    "pytest (>=9.0.3,<10.0.0)",
+    "pytest-django (>=4.12.0,<5.0.0)",
+    "ruff (>=0.15.10,<0.16.0)",
+    "mypy (>=1.20.1,<2.0.0)",
+    "bandit (>=1.9.4,<2.0.0)",
+    "radon (>=6.0.1,<7.0.0)",
+    "pre-commit (>=4.5.1,<5.0.0)",
+    "django-stubs (>=6.0.2,<7.0.0)"
+]
+
+[tool.ruff]
+line-length = 88
+target-version = "py312"
+extend-exclude = [
+    ".venv",
+    "venv",
+    "build",
+    "dist",
+    "__pycache__",
+    "*/migrations/*",
+    "logs",
+    "static",
+    "media",
+    ".mypy_cache",
+    ".ruff_cache",
+    ".pytest_cache",
+    ".idea",
+]
+
+[tool.ruff.lint]
+select = [
+    "E", "W", "F", "I", "UP", "B", "SIM", "C4"
+]
+ignore = ["E501"]
+
+[tool.ruff.lint.isort]
+known-first-party = ["config", "apps"]
+combine-as-imports = true
+force-sort-within-sections = true
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
+line-ending = "lf"
+docstring-code-format = true
+
+[tool.mypy]
+python_version = "3.12"
+# plugins = ["mypy_django_plugin.main"]  # Включаем плагин Django
+warn_return_any = true
+warn_unused_configs = true
+warn_unused_ignores = true
+warn_redundant_casts = true
+warn_unreachable = true
+check_untyped_defs = true
+disallow_incomplete_defs = false
+no_implicit_optional = true
+ignore_missing_imports = false
+exclude = [
+    ".*/migrations/.*",
+    "src/config/settings.py",
+]
+
+[[tool.mypy.overrides]]
+module = ["*.migrations.*", "apps.*.migrations.*"]
+ignore_errors = true
+
+[tool.django-stubs]
+django_settings_module = "config.settings"  # Исправлено на config.settings
+strict_settings = false
+
+[tool.pytest.ini_options]
+DJANGO_SETTINGS_MODULE = "config.settings"  # Исправлено на config.settings
+python_files = ["test_*.py", "*_test.py"]
+testpaths = ["tests", "apps"]
+addopts = [
+    "-v",
+    "--tb=short",
+    "--strict-markers",
+    "--disable-warnings",
+    "--capture=no"
+]
