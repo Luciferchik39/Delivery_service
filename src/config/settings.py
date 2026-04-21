@@ -24,8 +24,21 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'rest_framework',
     'delivery',
+
 ]
+
+# DRF Settings
+REST_FRAMEWORK = {
+    'DEFAULT_RENDERER_CLASSES': [
+        'rest_framework.renderers.JSONRenderer',
+    ],
+    'DEFAULT_PARSER_CLASSES': [
+        'rest_framework.parsers.JSONParser',
+    ],
+    'DEFAULT_RESPONSE_CLASS': 'rest_framework.response.Response',
+}
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
@@ -36,6 +49,10 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
+
+SESSION_ENGINE = 'django.contrib.sessions.backends.db'  # Хранить сессии в БД
+SESSION_COOKIE_AGE = 60 * 60 * 24 * 30  # 30 дней
+SESSION_SAVE_EVERY_REQUEST = True  # Обновлять сессию при каждом запросе
 
 ROOT_URLCONF = 'config.urls'
 
