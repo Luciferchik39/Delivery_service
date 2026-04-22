@@ -11,6 +11,7 @@ from rest_framework.request import Request
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
+from .exceptions import ParcelNotFoundError
 from .models import Parcel, ParcelType
 from .serializers import (
     ParcelCreateSerializer,
@@ -165,11 +166,10 @@ class ParcelDetailAPIView(APIView):
             serializer = ParcelResponseSerializer(parcel)
             logger.debug(f"Детали посылки {parcel_id} отправлены")
             return Response(serializer.data, status=status.HTTP_200_OK)
-        except Parcel.DoesNotExist:
+        except Parcel.DoesNotExist as err:  # ← добавить as err
             logger.warning(f"Посылка ID={parcel_id} не найдена в сессии {session_id}")
-            return Response({
-                'error': 'Посылка не найдена'
-            }, status=status.HTTP_404_NOT_FOUND)
+            # Используем кастомное исключение с сохранением цепочки
+            raise ParcelNotFoundError(f"Посылка с ID={parcel_id} не найдена в текущей сессии") from err
 
 
 class UserParcelsAPIView(APIView):

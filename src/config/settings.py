@@ -1,4 +1,3 @@
-# src/config/settings.py
 import os
 from pathlib import Path
 import sys
@@ -6,6 +5,10 @@ import sys
 from loguru import logger
 
 from .config import get_allowed_hosts_list, get_db_config, settings
+
+# Добавь LOG_LEVEL в импорт
+LOG_LEVEL = settings.LOG_LEVEL
+LOG_FORMAT = settings.LOG_FORMAT
 
 # Build paths
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -52,6 +55,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'apps.delivery.middleware.RequestLoggingMiddleware',
 ]
 
 SESSION_ENGINE = 'django.contrib.sessions.backends.db'  # Хранить сессии в БД
@@ -126,31 +130,70 @@ REDIS_URL = f"redis://{REDIS_HOST}:{REDIS_PORT}/{REDIS_DB}"
 # Cache settings
 CACHE_TTL = int(os.getenv('CACHE_TTL', 3600))  # 1 hour default
 
-# Loguru Configuration
-LOG_LEVEL = os.getenv('LOG_LEVEL', 'INFO')
+# ============================================
+# LOGURU CONFIGURATION
+# ============================================
 
 # Удаляем стандартный обработчик
 logger.remove()
 
-# Добавляем вывод в консоль
+# Форматы логирования
+LOG_FORMAT_CONSOLE = (
+    "<green>{time:YYYY-MM-DD HH:mm:ss.SSS}</green> | "
+    "<level>{level: <8}</level> | "
+    "<cyan>{name}</cyan>:<cyan>{function}</cyan>:<cyan>{line}</cyan> | "
+    "<level>{message}</level>"
+)
+
+LOG_FORMAT_JSON = (
+    '{"time": "{time:YYYY-MM-DD HH:mm:ss.SSS}", '
+    '"level": "{level}", '
+    '"name": "{name}", '
+    '"function": "{function}", '
+    '"line": {line}, '
+    '"message": "{message}"}'
+)
+
+# Выбор формата в зависимости от окружения
+LOG_FORMAT = LOG_FORMAT_JSON if not DEBUG else LOG_FORMAT_CONSOLE
+
+# Консольный вывод
 logger.add(
     sys.stdout,
-    format="<green>{time:YYYY-MM-DD HH:mm:ss}</green> | <level>{level: <8}</level> | <cyan>{name}</cyan>:<cyan>{function}</cyan>:<cyan>{line}</cyan> - <level>{message}</level>",
+    format=LOG_FORMAT,
     level=LOG_LEVEL,
-    colorize=True
+    colorize=DEBUG,
+    backtrace=True,
+    diagnose=DEBUG,
 )
 
-# Добавляем вывод в файл (опционально)
+# Файловый вывод (все логи)
 logger.add(
-    Path(__file__).resolve().parent.parent.parent / "logs" / "app.log",
+    Path(ROOT_DIR) / "logs" / "app.log",
+    format=LOG_FORMAT,
+    level="DEBUG",
     rotation="10 MB",
     retention="30 days",
-    format="{time:YYYY-MM-DD HH:mm:ss} | {level: <8} | {name}:{function}:{line} - {message}",
-    level=LOG_LEVEL,
-    enqueue=True
+    compression="zip",
+    enqueue=True,
+    backtrace=True,
+    diagnose=True,
 )
 
-logger.info(f"Loguru настроен. Уровень логирования: {LOG_LEVEL}")
+# Файловый вывод (только ошибки)
+logger.add(
+    Path(ROOT_DIR) / "logs" / "errors.log",
+    format=LOG_FORMAT,
+    level="ERROR",
+    rotation="10 MB",
+    retention="90 days",
+    compression="zip",
+    enqueue=True,
+    backtrace=True,
+    diagnose=True,
+)
+
+logger.info(f"Loguru настроен. Уровень логирования: {LOG_LEVEL}, Формат: {'JSON' if not DEBUG else 'CONSOLE'}")
 
 
 # Celery Configuration
