@@ -1,6 +1,8 @@
 # apps/delivery/views.py
 from datetime import datetime
 
+from django.db import connections
+from django.db.utils import OperationalError
 from loguru import logger
 from rest_framework import status
 from rest_framework.request import Request
@@ -192,3 +194,67 @@ class CalculateDeliveryCostAPIView(APIView):
                 'message': 'Запущен расчет стоимости для всех посылок',
                 'task_id': task.id
             }, status=status.HTTP_202_ACCEPTED)
+
+
+class HealthCheckAPIView(APIView):
+    """API для проверки здоровья приложения"""
+
+    def get(self, request: Request) -> Response:
+        """
+        GET /api/health/
+
+        Проверяет:
+        - Работоспособность Django
+        - Подключение к PostgreSQL
+        - Подключение к Redis (опционально)
+        - Подключение к Celery (опционально)
+        """
+        status_data = {
+            'status': 'healthy',
+            'checks': {}
+        }
+
+        # 1. Проверка Django
+        status_data['checks']['django'] = 'ok'
+
+        # 2. Проверка PostgreSQL
+        try:
+            db_conn = connections['default']
+            db_conn.cursor()
+            status_data['checks']['postgresql'] = 'ok'
+        except OperationalError as e:
+            status_data['status'] = 'unhealthy'
+            status_data['checks']['postgresql'] = 'error'
+            logger.error(f"PostgreSQL healthcheck failed: {e}")
+
+        # 3. Проверка Redis
+        try:
+            from .services import currency_service
+            if currency_service.redis_client.ping():
+                status_data['checks']['redis'] = 'ok'
+            else:
+                status_data['checks']['redis'] = 'error'
+        except Exception as e:
+            status_data['checks']['redis'] = 'error'
+            logger.error(f"Redis healthcheck failed: {e}")
+
+        # 4. Проверка Celery (опционально)
+        try:
+            # Способ 1: Через импорт celery приложения
+            from config.celery import app as celery_app
+            result = celery_app.control.ping(timeout=2)
+            if result:
+                status_data['checks']['celery'] = 'ok'
+            else:
+                status_data['checks']['celery'] = 'error'
+        except ImportError:
+            # Celery не настроен
+            status_data['checks']['celery'] = 'not_configured'
+        except Exception as e:
+            status_data['checks']['celery'] = 'error'
+            logger.error(f"Celery healthcheck failed: {e}")
+
+        # Определяем HTTP статус
+        http_status = status.HTTP_200_OK if status_data['status'] == 'healthy' else status.HTTP_503_SERVICE_UNAVAILABLE
+
+        return Response(status_data, status=http_status)

@@ -5,6 +5,7 @@ from .views import (
     CalculateDeliveryCostAPIView,  # ← добавить
     CreateParcelAPIView,
     CurrencyRateAPIView,
+    HealthCheckAPIView,
     ParcelDetailAPIView,
     ParcelTypeListAPIView,
     UserParcelsAPIView,
@@ -28,4 +29,7 @@ urlpatterns = [
     path('api/parcels/', UserParcelsAPIView.as_view(), name='parcels-list'),
     path('api/parcels/create/', CreateParcelAPIView.as_view(), name='parcel-create'),
     path('api/parcels/<int:parcel_id>/', ParcelDetailAPIView.as_view(), name='parcel-detail'),
+
+    # Health check
+    path('api/health/', HealthCheckAPIView.as_view(), name='health'),
 ]
